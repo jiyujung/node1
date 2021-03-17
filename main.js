@@ -5,17 +5,22 @@
 // node.js가 제공한 api
 const http = require('http');
 const fs = require('fs');
+const url = require('url');
 
 const app = http.createServer(function (req, res){
-    let url = req.url;
-    if(url == '/')
-        url = '/index.html';
-    if(url == '/favicon.ico')
+    var _url = req.url;
+    const queryData = url.parse(_url, true).query;
+    console.log(queryData.id);
+
+    if(_url == '/')
+        _url = '/index.html';
+    if(_url == '/favicon.ico')
         return res.writeHead(404);
 
     // header로 보내는 부분
     res.writeHead(200);
-    res.end(fs.readFileSync(__dirname + url));
+    res.end(queryData.id);
+    //res.end(fs.readFileSync(__dirname + url));
     //console.log(__dirname + req.url);    // 서버에서 이 파일의 내용을 그대로 보내겠다
     // res.end("hello egoing");
     // body로 보내는 부분
