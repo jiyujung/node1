@@ -2,6 +2,7 @@ const http = require('http')
 const fs = require('fs')
 const url = require('url')
 const qs = require('querystring')
+const path = require('path');
 
 const template = {
   HTML: function (title, list, body, control) {
@@ -51,7 +52,8 @@ const app = http.createServer(function (request, response) {
     } else {
       fs.readdir('data/', function (err, data) {
         const list = template.list(data)
-        fs.readFile(`data/${queryData.id}`, 'utf8',
+        const filteredId = path.parse(queryData.id).base;
+        fs.readFile(`data/${filteredId}`, 'utf8',
           function (err, description) {
             const title = queryData.id
             const html = template.HTML(title, list,
@@ -148,8 +150,9 @@ const app = http.createServer(function (request, response) {
     })
     request.on('end', function () {
       const post = qs.parse(body)
-      const id = post.id
-      fs.unlink(`data/${id}`, function (error) {
+      const id = post.id;
+      const filteredId = path.parse(id).base;
+      fs.unlink(`data/${filteredId}`, function (error) {
         response.writeHead(302, { Location: `/` })
         response.end()
       })
