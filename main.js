@@ -1,7 +1,9 @@
 const express =require('express');
 const app = express();
 const fs = require('fs');
+const path = require('path');
 const template = require('./lib/template.js');
+const sanitizeHtml = require('sanitize-html');
 
 app.get('/', function(request, response){
     fs.readdir('./data', function(error, filelist){
@@ -16,8 +18,28 @@ app.get('/', function(request, response){
     });
 });
 
-app.get('/page', function(req, res){
-    res.send("/page");
+app.get('/page/:pageId', function(request, response){
+    fs.readdir('./data', function(error, filelist){
+        const filteredId = path.parse(request.params.pageId).base;
+        fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
+            const title = request.params.pageId;
+            const sanitizedTitle = sanitizeHtml(title);
+            const sanitizedDescription = sanitizeHtml(description, {
+                allowedTags: ['h1']
+            });
+            const list = template.list(filelist);
+            const html = template.HTML(sanitizedTitle, list,
+                `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
+                ` <a href="/create">create</a>
+          <a href="/update?id=${sanitizedTitle}">update</a>
+          <form action="delete_process" method="post">
+            <input type="hidden" name="id" value="${sanitizedTitle}">
+            <input type="submit" value="delete">
+          </form>`
+            );
+            response.send(html);
+        });
+    });
 });
 
 app.listen(3000);
